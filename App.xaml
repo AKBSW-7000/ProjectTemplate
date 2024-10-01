@@ -1,0 +1,34 @@
+﻿<Application x:Class="Projekt1.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Projekt1"
+             
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
+    <Application.Resources>
+        <Style x:Name="borderStyle_1" TargetType="{x:Type Border}">
+            <Style.Setters>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="1"/>
+                <Setter Property="Margin" Value="3 3 3 3"/>
+            </Style.Setters>
+        </Style>
+        <Style x:Name="buttonStyle_1" TargetType="{x:Type Button}">
+            <Style.Setters>
+                <Setter Property="Margin" Value="0 0 0 0"/>
+                <Setter Property="Padding" Value="0 0 0 0"/>
+                <Setter Property="Background" Value="DarkSlateGray"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            </Style.Setters>
+            <Style.Triggers>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="LightSlateGray"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <SolidColorBrush x:Key="fontColor" Color="Tomato"/>
+    </Application.Resources>
+</Application>
