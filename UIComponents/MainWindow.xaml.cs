@@ -23,6 +23,13 @@ public partial class MainWindow : Window
     {
         DataContext = App.DataModel;
         InitializeComponent();
+#if OFFLINE_DEBUG
+        ProjectLabel.Content = "Projekt1\nOFFLINE_DEBUG";
+#elif DEBUG
+        ProjectLabel.Content = "Projekt1\nDEBUG";
+#else
+        ProjectLabel.Content = "Projekt1";
+#endif
         main_content_controller = new ContentControl() { HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch };
         main_content_controller.Content = home_page = new HomePage();
         statistics_page = new StatsPage();

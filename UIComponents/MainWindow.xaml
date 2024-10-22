@@ -312,13 +312,13 @@
             <Border Name="sidePanel" Grid.Column="0" Background="#FF333333" Margin="2 2 0 8">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Name ="r3" Height="*"/>
+                        <RowDefinition Name ="r3" Height="2*"/>
                         <RowDefinition Name="r4" Height="30*"/>
                     </Grid.RowDefinitions>
-                    <Label Content="Projekt1" Grid.Row="0" Padding="0" Margin="0"
+                    <Label Name="ProjectLabel" Grid.Row="0" Padding="0" Margin="0"
                            Foreground="{StaticResource ResourceKey=fontColor}" 
                            HorizontalContentAlignment="Center" 
-                           VerticalContentAlignment="Center"/>
+                           VerticalContentAlignment="Center" FontSize="18pt"/>
                     <Grid Grid.Row="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -386,7 +386,11 @@
                                 </DockPanel>
                             </Viewbox>
                         </Button>
-                        <Button Name="settingsBtn" Grid.Row="5" Margin="0 1" Click="settings_button_click">
+                            <Canvas Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 -50 25 0" Panel.ZIndex="1">
+                            <local:ErrorPopup/>
+
+                        </Canvas>
+<Button Name="settingsBtn" Grid.Row="5" Margin="0 1" Click="settings_button_click">
                             <Viewbox>
                                 <DockPanel Width="{Binding Width, ElementName=sidePanel}">
                                     <icon:MaterialIcon DockPanel.Dock="Left" Kind="Gear"
@@ -458,7 +462,8 @@
                     </Grid>
                 </Grid>
             </Border>
-             <Grid Name="Presentor_Grid" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+             <Grid Name="Presentor_Grid" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Panel.ZIndex="-1"/>
+       
         </Grid>
     </Grid>        
     </Grid>

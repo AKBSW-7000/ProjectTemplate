@@ -8,5 +8,6 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Rectangle Fill="Brown"/>
+        <Button Content="presserproc" Click="festoproc_onCLick"/>
     </Grid>
 </UserControl>

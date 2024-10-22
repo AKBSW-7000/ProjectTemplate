@@ -40,24 +40,29 @@ public partial class AppDataModel : INotifyPropertyChanged
         if (!File.Exists(file))
         {
             App.debuggingLog.TraceEvent(TraceEventType.Warning, 0, "Application datamodel file does not exist!");
-            var newAppDataModel = new AppDataModel();
+            AppDataModel newAppDataModel = new ();
             newAppDataModel.AllLang = new Dictionary<CultureInfo, displayWording>();
             newAppDataModel.AllLang.Add(CultureInfo.GetCultureInfo("en-US"), new displayWording());
             newAppDataModel.SelectedCulture = "en-US";
             return newAppDataModel;
         }
+
         try
         {
             using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
-            using (var tReader = new StreamReader(fileStream))
-            using (var jreader = new JsonTextReader(tReader))
-            {
-                var jSerializer = new JsonSerializer();
-                var newAppDataModel = jSerializer.Deserialize<AppDataModel>(jreader);
-                if (newAppDataModel is AppDataModel) return newAppDataModel;
-            }
-        }
-        catch { }
+                using (var tReader = new StreamReader(fileStream))
+                    using (var jreader = new JsonTextReader(tReader))
+                    {
+                        JsonSerializer jSerializer     = new ();
+                        var            newAppDataModel = jSerializer.Deserialize<AppDataModel>(jreader);
+
+                        if (newAppDataModel is not null)
+                        {
+                            return newAppDataModel;
+                        }
+                    }
+        } catch {}
+
         App.debuggingLog.TraceEvent(TraceEventType.Warning, 0, "JsonDeserialization of Application datamodel file failed!");
         return new AppDataModel();
     }
@@ -67,21 +72,24 @@ public partial class AppDataModel : INotifyPropertyChanged
     public static void AppModelSave(string filePath, ref AppDataModel apm)
     {
         var file = Path.Combine(filePath, fileName);
+
         try
         {
             using (var fileStream = new FileStream(file, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            using (var tWriter = new StreamWriter(fileStream))
-            using (var jWriter = new JsonTextWriter(tWriter))
-            {
-                jWriter.Formatting = Formatting.Indented;                 
-                jWriter.Indentation = 4;
-                var jSerializer = new JsonSerializer();
-                jSerializer.Serialize(jWriter, apm);
-                apm = null;
-            }
-        }
-        catch {
-            App.debuggingLog.TraceEvent(TraceEventType.Warning, 0, "JsonSerialization of Application datamodel file failed!");
+                using (var tWriter = new StreamWriter(fileStream))
+                    using (var jWriter = new JsonTextWriter(tWriter))
+                    {
+                        jWriter.Formatting  = Formatting.Indented;
+                        jWriter.Indentation = 4;
+                        JsonSerializer jSerializer = new ();
+                        jSerializer.Serialize(jWriter, apm);
+                        apm = null;
+                    }
+        } catch
+        {
+            App.debuggingLog.TraceEvent(TraceEventType.Warning
+                                      , 0
+                                      , "JsonSerialization of Application datamodel file failed!");
         }
     }
     #endregion
