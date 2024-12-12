@@ -73,20 +73,13 @@ public partial class ErrorPopup : UserControl
 #endregion
         Loaded += (_, _) =>
                   {
-                      App.errorManager.errorEventHandler += ErrorManager_errorEventHandler;
+                      App.errorManager.errorEventHandler += (_,_)=> Dispatcher.BeginInvoke(() => update_alarmListView()); 
                       Dispatcher.BeginInvoke(() => update_alarmListView());
                   };
 
         MouseDoubleClick += ErrorPopup_MouseDoubleClick;
         
     }
-
-    private void ErrorManager_errorEventHandler(object sender, AKBUtilities.ErrorEventArg e)
-    {
-        Dispatcher.BeginInvoke(() => update_alarmListView());
-        App.debuggingLog.TraceEvent(TraceEventType.Error,e.LastErrorCode,e.LastErrorMessage);
-    }
-
     private void ErrorPopup_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (ErrorBox.Visibility == Visibility.Collapsed)
@@ -110,12 +103,12 @@ public partial class ErrorPopup : UserControl
             return;
         }
 
-        var ENUMERABLE = App.alarmStorage.alarm.ToList();
-        foreach (var ac in ENUMERABLE)
+        var alarmComponents = App.alarmStorage.alarm.ToList();
+        foreach (var alarmComponent in alarmComponents)
         {
-            alarmLabel al = new(ac)
+            alarmLabel alarmLabel = new(alarmComponent)
             {
-                Content = $"[{ac.timeOccurred:dd-MMM-yy HH:mm:ss}] {ac.message}",
+                Content = $"[{alarmComponent.timeOccurred:dd-MMM-yy HH:mm:ss}] {alarmComponent.message}",
                 FontSize = 24
                                ,
                 Padding = new Thickness(-10)
@@ -141,40 +134,36 @@ public partial class ErrorPopup : UserControl
                 Padding = new Thickness(0),
                 Margin = new Thickness(0)
             };
-            resetClickitem.Click += (_, e) =>
+            resetClickitem.Click += (_, _) =>
             {
-                int index = App.alarmStorage.alarm.Select(x => x.id).ToList().IndexOf(ac.id);
+                int index = App.alarmStorage.alarm.Select(x => x.id).ToList().IndexOf(alarmComponent.id);
                 App.alarmStorage.resolve_alarm_at(index, "Admin Manual Reset");
-                (al.Parent as ListView).Items.Remove(al);
+                App.debuggingLog.TraceEvent(TraceEventType.Information,alarmLabel.alarm.code,$"Alarm Resolved:{alarmLabel.alarm.message}");
+                (alarmLabel.Parent as ListView)?.Items.Remove(alarmLabel);
                 ErrorCount = App.alarmStorage.get_alarm_count();
                 if (ErrorCount < 1)
-                {
                     Visibility = ErrorBox.Visibility = Visibility.Collapsed;
-                }
             };
 
             _contextMenu.Items.Add(resetClickitem);
-            al.ContextMenu = _contextMenu;
-            AlarmListView.Items.Insert(0, al);
-
+            alarmLabel.ContextMenu = _contextMenu;
+            AlarmListView.Items.Insert(0, alarmLabel);
         }
 
         if (ErrorCount > 0)
-        {
             Visibility = ErrorBox.Visibility = Visibility.Visible;
-        }
-      
     }
 
     private void reset_all_click(object sender, RoutedEventArgs e)
     {
         App.alarmStorage.resolve_all_alarms();
+        App.debuggingLog.TraceEvent(TraceEventType.Information, 0, "All Alarm Resolved");
         update_alarmListView();
     }
 }
 
 public class alarmLabel: Label{
-    private readonly AlarmStorage.AlarmComponent alarm;
+    public readonly AlarmStorage.AlarmComponent alarm;
     public alarmLabel(AlarmStorage.AlarmComponent ac) : base()
     {
         alarm = ac;
