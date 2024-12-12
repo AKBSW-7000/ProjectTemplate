@@ -1,4 +1,6 @@
-﻿using System.Windows.Navigation;
+﻿using System;
+using System.Threading;
+using System.Windows.Navigation;
 using AKBControls;
 using AKBUtilities;
 
@@ -20,8 +22,13 @@ public class FestoController : FestoControl, IObservableDevice
 #endif
     }
 
-    public string getIconURI() => "..\\Resources\\FESTO_Cont.jpg";
-    public bool getConnectedStatus() => IsConnected;
+    public override void terminate()
+    {
+        if(IsConnected)
+            base.terminate();
+    } 
+    public          string getIconURI()         => "..\\Resources\\FESTO_Cont.jpg";
+    public          bool   getConnectedStatus() => IsConnected;
 }
 
 public interface IObservableDevice : IDevicesInterface

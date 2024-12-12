@@ -1,14 +1,15 @@
 ﻿using System.Windows.Navigation;
 using ACS_Control;
+using AKBControls;
 using AKBUtilities;
 
 namespace Projekt1;
 public class ACSController: AcsInterface, IObservableDevice
 {
-    private string controllerIP = "127.0.0.1";
-    public ACSController(string hostIP,int TotalProc, string SettingsPath, IerrorManager err) : base(TotalProc, SettingsPath, err)
+    public readonly string controllerIP = "127.0.0.1";
+    public ACSController(EthernetPrm ethp,int TotalProc, string SettingsPath, IerrorManager err) : base(TotalProc, SettingsPath, err)
     {
-        controllerIP = hostIP;
+        controllerIP = ethp.EthIpAddress;
     }
     public bool initialize()
     {
