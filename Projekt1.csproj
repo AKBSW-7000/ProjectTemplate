@@ -45,20 +45,19 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ACS_Control, Version=1.0.1.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\ACS_Control.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationFramework.Aero2" />
+    <Reference Include="Splash, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Splash\bin\Release\Splash.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -71,10 +70,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataBaseComponents\StatsDataBase.cs" />
     <Compile Include="DeviceComponents\MotionController\ACSController.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="DeviceComponents\DeviceComponents.cs" />
     <Compile Include="DeviceComponents\MotionController\FestoController.cs" />
+    <Compile Include="ProcessComponents\PDFReport.xaml.cs">
+      <DependentUpon>PDFReport.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ProcessComponents\StationProcesses\FestoProcess.cs" />
     <Compile Include="Projekt1ErrManager.cs" />
     <Compile Include="ServerComponents\UserManager.cs" />
@@ -110,15 +113,16 @@
     <Compile Include="UIComponents\SettingPages\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UIComponents\Splash.xaml.cs">
-      <DependentUpon>Splash.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UIComponents\StatisticsPages\StatsPage.xaml.cs">
       <DependentUpon>StatsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="UIComponents\TimeAndDateControl.xaml.cs">
       <DependentUpon>TimeAndDateControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="ProcessComponents\PDFReport.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UIComponents\AlarmPages\AlarmsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -175,10 +179,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UIComponents\Splash.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UIComponents\StatisticsPages\StatsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -215,12 +215,12 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DataBaseComponents\" />
     <Folder Include="DeviceComponents\DeviceControllers\" />
     <Folder Include="DeviceComponents\SafetyPLC\" />
     <Folder Include="DeviceComponents\VisionController\" />
     <Folder Include="ProcessComponents\ProcessThreadHandlers\" />
     <Folder Include="ProcessComponents\Trackers\" />
+    <Folder Include="UIComponents\CalibrationPages\Axes\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UIComponents\Resources\AristoLogo.png">
@@ -235,16 +235,19 @@
       <Version>1.0.1.4</Version>
     </PackageReference>
     <PackageReference Include="AKBControls_Aristos">
-      <Version>1.0.0.5</Version>
+      <Version>1.0.0.7</Version>
     </PackageReference>
     <PackageReference Include="AKBUtilities_Aristos">
       <Version>1.0.2.1</Version>
     </PackageReference>
+    <PackageReference Include="iTextSharp">
+      <Version>5.5.13.4</Version>
+    </PackageReference>
     <PackageReference Include="Material.Icons.WPF">
       <Version>2.1.10</Version>
     </PackageReference>
-    <PackageReference Include="WpfAnimatedGif">
-      <Version>2.0.2</Version>
+    <PackageReference Include="ScottPlot.WPF">
+      <Version>5.0.46</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -254,8 +257,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UIComponents\Resources\ACSCont.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="favicon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

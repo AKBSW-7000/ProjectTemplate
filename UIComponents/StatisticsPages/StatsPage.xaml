@@ -4,9 +4,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Projekt1"
+             xmlns:sp="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Rectangle Fill="Green"/>
+        <Label Panel.ZIndex="1" FontSize="52" HorizontalAlignment="Center" VerticalAlignment="Top" MouseDoubleClick="export_to_pdf">
+                LC1 LC2 LC3 LC4 LC5 LC6 LC7 LC8 LC9 LC10 LC11 LC12
+        </Label>
+        <sp:WpfPlot Name="boxcharts"/>
     </Grid>
 </UserControl>

@@ -76,7 +76,7 @@ public partial class MainWindow : Window
 
     private void Window_Closed(object sender, System.EventArgs e)
     {
-        App.debuggingLog.TraceEvent(TraceEventType.Information, 0, "Application ShutDown.");
+        App.debuggingLog.TraceEvent(TraceEventType.Information, 0, "Application Shutting Down.");
         App.Current.Shutdown();
     }
 
