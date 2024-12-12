@@ -6,8 +6,27 @@
              xmlns:local="clr-namespace:Projekt1"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Rectangle Fill="Brown"/>
-        <Button Content="presserproc" Click="festoproc_onCLick"/>
-    </Grid>
-</UserControl>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="6*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="6*"/>
+        </Grid.RowDefinitions>
+        <Expander x:Name="expDevices" Grid.Column="0" Grid.RowSpan="2" ExpandDirection="Down" Header="Axis List" 
+                  Template="{StaticResource SimpleExpanderTemp}" 
+                  Margin="5,6,0,1"
+                  Background="DarkSlateGray"
+                  Foreground="{StaticResource fontColor}"
+                  FontSize="18pt">
+            <Grid Background="DarkSlateGray">
+                <ScrollViewer Margin="0 3 0 0">
+                    <StackPanel x:Name="AxisListSp"/>
+                </ScrollViewer>
+            </Grid>
+        </Expander>
+        <Label x:Name="AxisLabel" Grid.Column="1" Grid.Row="0" Foreground="{StaticResource fontColor}" FontSize="18pt" Margin="11" Padding="0"/>
+        <ContentPresenter Grid.Row="0" Grid.RowSpan="2" Name="DeviceContentPresenter" Grid.Column="0" Grid.ColumnSpan="2" Panel.ZIndex="-1"/>
+    </Grid></UserControl>
