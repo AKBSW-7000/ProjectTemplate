@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Packaging;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,9 @@ using Timer = System.Timers.Timer;
 using System.Windows;
 
 using AKBUtilities;
+using AKBControls;
+using Splash;
+using System.Linq;
 
 namespace Projekt1;
 
@@ -37,66 +41,53 @@ public partial class App : Application
         }
         CommonUse.CONST_DB_NAME = Assembly.GetExecutingAssembly().GetName().Name;
     }
+
     protected override void OnStartup(StartupEventArgs e)
     {
-        Splash splashScreen = new ();
+        Screen splashScreen = new();
         userManager = new UserManager();
-
+        backup_db(out var stdO, out var stdE);
         init_directories();
-        init_traceLogger();
         init_errorMgr();
+        init_traceLogger();
         init_dataModel();
 
         debuggingLog.TraceEvent(TraceEventType.Information, 0, "Application Started");
-#if DEBUG
+        #if DEBUG
         debuggingLog.TraceEvent(TraceEventType.Information, 0, "In debug mode");
-#else
+        #else
             splashScreen.Topmost = true;
             splashScreen.Show();
-#endif
-        ObservableCollection<Delegate> actions = new ();
-        
+        #endif
+        ObservableCollection<Delegate> actions = new();
+
         actions.Add((Func<bool>)init_devices);
-
         Task.Factory.StartNew(() =>
-        {
-            foreach (var action in actions)
-            {
-                splashScreen.Task = $"{GetLastPart(action.Target.ToString())} {action.Method.Name}";
-                Thread td = new(() =>
-                                        {
-                                            if (action is Func<bool> actionWithoutReturnValue)
-                                            {
-                                                actionWithoutReturnValue();
-                                                splashScreen.Progress += 100.0/actions.Count;
-                                            }
-                                        });
+                              {
+                                  //Splashscreen
+                                  splashScreen.init_application(actions);
 
-                td.Name               = $"{action.Method.Name}_thread";
-                td.Start();
-                if (td.IsAlive) td.Join(360000);
-            }
-            splashScreen.Progress = 100.0;
-            Thread.Sleep(1000);
-            //to create and show the main window
-            Dispatcher.Invoke(() =>
-            {
-                //initialize the main window, set it as the application main window
-                //and close the splash screen
-                Current.MainWindow = new MainWindow();
-                Current.MainWindow.Show();
-#if !DEBUG
+                                  //to create and show the main window
+                                  Dispatcher.Invoke(() =>
+                                                    {
+                                                        //initialize the main window, set it as the application main window
+                                                        //and close the splash screen
+                                                        Current.MainWindow = new MainWindow();
+                                                        Current.MainWindow.Show();
+                                                        #if !DEBUG
                 splashScreen.Close();
-#endif
-            });
-        });
+                                                        #endif
+                                                    });
+                              });
     }
+
     protected override void OnExit(ExitEventArgs e)
     {
-        var filePath = Path.Combine(directoryManager.get_directory_path(DirectoryType.Settings));
+        devices.terminate_all();
         AppDataModel.AppModelSave(directoryManager.get_directory_path(DirectoryType.Settings), ref DataModel);
         alarmStorage.terminate();
         sig.instance_closed();
+        App.debuggingLog.TraceEvent(TraceEventType.Information, 0, "Application Exited.");
         base.OnExit(e);
     }
     private void init_directories()
@@ -126,15 +117,15 @@ public partial class App : Application
     private void init_traceLogger()
     {
         var fp = Assembly.GetExecutingAssembly().GetName().Name;
-
         debuggingLog        = new TraceSource($"{fp}_logger");
         debuggingLog.Switch = new SourceSwitch("sourceSwitch", "Error");
         debuggingLog.Listeners.Remove("Default");
 
 #region Log file writer init
 
+        directoryManager.create_subdirectory(DirectoryType.Logs, "TraceLog", out var logfp);
         var logFileName = $"{fp}_myListener_{DateTime.Now.ToString("dd-HHmmss-MMyyyy")}.log";
-        var filePath    = Path.Combine(directoryManager.get_directory_path(DirectoryType.Logs), logFileName);
+        var filePath    = Path.Combine(logfp, logFileName);
         var tracer      = File.AppendText(filePath);
         tracer.AutoFlush = true;
         
@@ -200,6 +191,8 @@ StackTrace    =
 "); 
                                                           debuggingLog.Flush();
                                                       };
+        errorManager.errorEventHandler += (_, e) => App.debuggingLog.TraceEvent(TraceEventType.Error, e.LastErrorCode, e.LastErrorMessage);
+
     }
     private void init_errorMgr()
     {
@@ -213,24 +206,97 @@ StackTrace    =
     }
     private bool init_devices()
     {
-        var fp = directoryManager.get_directory_path(DirectoryType.Settings);
         devices = DeviceComponents.construct_devices();
         return devices.Initialize_all_devices();
     }
-    private string GetLastPart(string fullString)
+    private bool backup_db(out string stdOutput, out string stdError)
     {
-        int lastDotIndex = fullString.LastIndexOf('.');
+        var dirPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups", "Dbase");
 
-        if (lastDotIndex != -1 && lastDotIndex < fullString.Length - 1)
+        var latestSqlFile = Directory.GetFiles(dirPath, "*.sql")
+                                     .Select(file => new FileInfo(file))
+                                     .OrderByDescending(fileInfo => fileInfo.CreationTime)
+                                     .FirstOrDefault();
+
+        if (latestSqlFile != null)
         {
-            // Extract the substring after the last dot
-            return fullString.Substring(lastDotIndex + 1);
+            var diff = DateTime.Now - latestSqlFile.CreationTime;
+
+            if (diff.TotalDays < 7)
+            {
+                stdOutput = "File is newer than Database_Backup_Interval setting of {} days";
+                stdError  = "";
+                return true;
+            }
         }
-        else
+
+        var pi = new ProcessStartInfo();
+        pi.FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups", "Dbase", "SQL_backup.bat");
+        stdOutput = stdError = "";
+        if (!File.Exists(pi.FileName))
         {
-            // Return the original string if no dot is found or if it's the last character
-            return fullString;
+            stdOutput = "Error";
+            stdError = "Batch file or directory doesn't exist!";
+            return false;
         }
+        pi.WorkingDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups", "Dbase");
+        pi.UseShellExecute = false;
+        pi.CreateNoWindow = true;
+        // *** Redirect the output ***
+        pi.RedirectStandardError = true;
+        pi.RedirectStandardOutput = true;
+
+        if (!FindMysqldumpPath(out var fp))
+        {
+            stdOutput = "Error";
+            stdError = "mysqldump.exe cannot be found.";
+            return false;
+        }
+        pi.Arguments = $"{CommonUse.CONST_DB_ADMIN} {CommonUse.CONST_DB_PASSWORD} \"{fp}\"";
+
+        var p = Process.Start(pi);
+        p.WaitForExit();
+
+        if (p.ExitCode != 0)
+        {
+            stdError = p.StandardError.ReadToEnd();
+            stdOutput = p.StandardOutput.ReadToEnd();
+            return false;
+        }
+        return true;
+    }
+
+    private bool FindMysqldumpPath(out string fp)
+    {
+        // Check common directories
+        string[] commonPaths = {
+                                       @"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe",
+                                       @"C:\Program Files (x86)\MySQL\MySQL Server 8.0\bin\mysqldump.exe"
+                                   };
+
+        foreach (var path in commonPaths)
+        {
+            if (File.Exists(path))
+            {
+                fp = path;
+                return true;
+            }
+        }
+
+        // Check PATH environment variable
+        var paths = Environment.GetEnvironmentVariable("PATH").Split(';');
+        foreach (var path in paths)
+        {
+            var fullPath = Path.Combine(path, "mysqldump.exe");
+            if (File.Exists(fullPath))
+            {
+                fp = path;
+                return true;
+            }
+        }
+
+        fp = "";
+        return false;
     }
 
 }
